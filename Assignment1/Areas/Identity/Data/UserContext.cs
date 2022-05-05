@@ -16,6 +16,7 @@ public class UserContext : IdentityDbContext<Assignment1User>
     public DbSet<Book> Book { get; set; }
     public DbSet<OrderDetail> OrderDetail { get; set; }
     public DbSet<Order> Order { get; set; }
+    public DbSet<Cart> Cart { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -45,5 +46,18 @@ public class UserContext : IdentityDbContext<Assignment1User>
             .HasOne<Book>(od => od.Book)
             .WithMany(b => b.OrderDetails)
             .HasForeignKey(od => od.BookIsbn);
+
+        builder.Entity<Cart>()
+            .HasKey(c => new { c.UId, c.BookIsbn });
+        builder.Entity<Cart>()
+            .HasOne<Assignment1User>(c => c.User)
+            .WithMany(u => u.Carts)
+            .HasForeignKey(c => c.UId);
+        builder.Entity<Cart>()
+            .HasOne<Book>(od => od.Book)
+            .WithMany(b => b.Carts)
+            .HasForeignKey(od => od.BookIsbn)
+            .OnDelete(DeleteBehavior.NoAction);
+
     }
 }

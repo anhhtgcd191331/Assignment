@@ -47,7 +47,76 @@ namespace Assignment1.Controllers
                 .ToListAsync();
             return View(books);
         }
+        public async Task<IActionResult> List(int id)
+        {
+            Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
+            Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
+            var userContext = _context.Book.Where(b => b.StoreId == thisStore.Id).Include(b => b.Store);
+            return View(await userContext.ToListAsync());
+        }
+        public async Task<IActionResult> AddToCart(string isbn)
+        {
+            string thisUserId = _userManager.GetUserId(HttpContext.User);
+            Cart myCart = new Cart() { UId = thisUserId, BookIsbn = isbn };
+            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
+            //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
+            if (fromDb == null)
+            {
+                _context.Add(myCart);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _context.Add(new Cart() { Quantity = 1, BookIsbn = isbn }); 
+            }
+            return RedirectToAction("List");
+        }
+        public async Task<IActionResult> Checkout()
+        {
+            string thisUserId = _userManager.GetUserId(HttpContext.User);
+            List<Cart> myDetailsInCart = await _context.Cart
+                .Where(c => c.UId == thisUserId)
+                .Include(c => c.Book)
+                .ToListAsync();
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    //Step 1: create an order
+                    Order myOrder = new Order();
+                    myOrder.UId = thisUserId;
+                    myOrder.OrderTime = DateTime.Now;
+                    myOrder.Total = myDetailsInCart.Select(c => c.Book.Price)
+                        .Aggregate((c1, c2) => c1 + c2);
+                    _context.Add(myOrder);
+                    await _context.SaveChangesAsync();
 
+                    //Step 2: insert all order details by var "myDetailsInCart"
+                    foreach (var item in myDetailsInCart)
+                    {
+                        OrderDetail detail = new OrderDetail()
+                        {
+                            OrderId = myOrder.Id,
+                            BookIsbn = item.BookIsbn,
+                            Quantity = 1
+                        };
+                        _context.Add(detail);
+                    }
+                    await _context.SaveChangesAsync();
+
+                    //Step 3: empty/delete the cart we just done for thisUser
+                    _context.Cart.RemoveRange(myDetailsInCart);
+                    await _context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch (DbUpdateException ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine("Error occurred in Checkout" + ex);
+                }
+            }
+            return RedirectToAction("Index", "Cart");
+        }
         // GET: Books/Details/5
         public async Task<IActionResult> Details(string id)
         {
@@ -92,7 +161,7 @@ namespace Assignment1.Controllers
                 {
                     image.CopyTo(stream);
                 }
-                book.Isbn = "img/" + ImageName;
+                book.ImgUrl = "img/" + ImageName;
                 Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
                 Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
                 book.StoreId = thisStore.Id;
@@ -154,19 +223,12 @@ namespace Assignment1.Controllers
                 bookToUpdate.Desc = book.Desc ;
                 try
                 {
-                    _context.Update(book);
+                    _context.Update(bookToUpdate);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    if (!BookExists(book.Isbn))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    ModelState.AddModelError("", "Unable to update the change. Error is: " + ex.Message);
                 }
                 return RedirectToAction(nameof(Index));
             }

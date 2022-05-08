@@ -56,14 +56,6 @@ namespace Assignment1.Areas.Identity.Pages.Account.Manage
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
-            [Display(Name ="Full Name")]
-            public string Name { get; set; }
-
-            [Required]
-            [Display(Name = "Birth Date")]
-            [DataType(DataType.Date)]
-            public DateTime DoB { get; set; }
 
             [Required]
             [Display(Name = "Home Address")]
@@ -79,14 +71,12 @@ namespace Assignment1.Areas.Identity.Pages.Account.Manage
         {
             var userName = await _userManager.GetUserNameAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            var fullName = user.UserName;
             var address = user.Address;
             Username = userName;
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber, 
-                Name = fullName,
+                PhoneNumber = phoneNumber,
                 Address = address
             };
         }
@@ -127,16 +117,12 @@ namespace Assignment1.Areas.Identity.Pages.Account.Manage
                     return RedirectToPage();
                 }
             }
-            if (Input.Name != user.UserName)
+            var address = user.Address;
+            if (Input.Address != user.Address)
             {
-                user.UserName = Input.Name;
+                user.Address = Input.Address;
+                await _userManager.UpdateAsync(user);
             }
-
-            if (Input.DoB != user.DoB)
-            {
-                user.DoB = Input.DoB;
-            }
-
             await _userManager.UpdateAsync(user);
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";

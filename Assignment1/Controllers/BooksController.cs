@@ -14,12 +14,14 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Assignment1.Controllers
 {
+    [Authorize]
     public class BooksController : Controller
     {
         private readonly UserContext _context;
         private readonly int _recordsPerPage = 5;
+        private readonly int _recordsPerPages = 30;
         private readonly UserManager<Assignment1User> _userManager;
-
+                             
         public BooksController(UserContext context, UserManager<Assignment1User> userManager)
         {
             _context = context;
@@ -32,45 +34,71 @@ namespace Assignment1.Controllers
         //    var userContext = _context.Book.Include(b => b.Store);
         //    return View(await userContext.ToListAsync());
         //}
-        public async Task<IActionResult> Index(int id)
-        {
-            Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
-            Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
-        
-        int numberOfRecords = await _context.Book.CountAsync();     //Count SQL
-            int numberOfPages = (int)Math.Ceiling((double)numberOfRecords / _recordsPerPage);
-            ViewBag.numberOfPages = numberOfPages;
-            ViewBag.currentPage = id;
-            List<Book> books = await _context.Book
-                .Skip(id * _recordsPerPage)  //Offset SQL
-                .Take(_recordsPerPage)       //Top SQL
-                .ToListAsync();
-            return View(books);
-        }
-        public async Task<IActionResult> List(int id)
-        {
-            Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
-            Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
-            var userContext = _context.Book.Where(b => b.StoreId == thisStore.Id).Include(b => b.Store);
-            return View(await userContext.ToListAsync());
-        }
+        [Authorize(Roles = "Seller")]
+            public async Task<IActionResult> Index(int id, string searchString)
+            {
+                Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
+                Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
+
+                var books1 = from b in _context.Book
+                             select b;
+
+                if (!String.IsNullOrEmpty(searchString))
+                {
+                    books1 = books1.Where(s => s.Title!.Contains(searchString));
+                }
+                int numberOfRecords = await books1.CountAsync();     //Count SQL
+                int numberOfPages = (int)Math.Ceiling((double)numberOfRecords / _recordsPerPage);
+                ViewBag.numberOfPages = numberOfPages;
+                ViewBag.currentPage = id;
+                List<Book> books = await books1
+                    .Skip(id * _recordsPerPage)  //Offset SQL
+                    .Take(_recordsPerPage)       //Top SQL
+                    .ToListAsync();
+                return View(books);
+            }
+            [AllowAnonymous]
+            public async Task<IActionResult> List(int id, string searchString)
+            {
+
+                var books1 = from b in _context.Book
+                             select b;
+
+                if (!String.IsNullOrEmpty(searchString))
+                {
+                    books1 = books1.Where(s => s.Title!.Contains(searchString)|| s.Category.Contains(searchString));
+                }
+                int numberOfRecords = await books1.CountAsync();     //Count SQL
+                int numberOfPages = (int)Math.Ceiling((double)numberOfRecords / _recordsPerPages);
+                ViewBag.numberOfPages = numberOfPages;
+                ViewBag.currentPage = id;
+                List<Book> books = await books1
+                    .Skip(id * _recordsPerPages)  //Offset SQL
+                    .Take(_recordsPerPages)       //Top SQL
+                    .ToListAsync();
+                return View(books);
+            }
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> AddToCart(string isbn)
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
-            Cart myCart = new Cart() { UId = thisUserId, BookIsbn = isbn };
+            Cart myCart = new Cart() { UId = thisUserId, BookIsbn = isbn, Quantity = 1};
             Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
             //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
-            if (fromDb == null)
+            if (fromDb != null)
             {
-                _context.Add(myCart);
+                fromDb.Quantity++;
+                _context.Update(fromDb);
                 await _context.SaveChangesAsync();
             }
             else
             {
-                _context.Add(new Cart() { Quantity = 1, BookIsbn = isbn }); 
+                _context.Add(myCart);
+                await _context.SaveChangesAsync();
             }
             return RedirectToAction("List");
         }
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> Checkout()
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
@@ -82,13 +110,15 @@ namespace Assignment1.Controllers
             {
                 try
                 {
+                    
                     //Step 1: create an order
                     Order myOrder = new Order();
                     myOrder.UId = thisUserId;
                     myOrder.OrderTime = DateTime.Now;
-                    myOrder.Total = myDetailsInCart.Select(c => c.Book.Price)
-                        .Aggregate((c1, c2) => c1 + c2);
-                    _context.Add(myOrder);
+                    myOrder.Total = myDetailsInCart.Select(c => c.Book.Price * c.Quantity)
+                        .Aggregate((c1, c2) => (c1 + c2)/2);
+
+                    _context.Add(myOrder);      
                     await _context.SaveChangesAsync();
 
                     //Step 2: insert all order details by var "myDetailsInCart"
@@ -98,11 +128,12 @@ namespace Assignment1.Controllers
                         {
                             OrderId = myOrder.Id,
                             BookIsbn = item.BookIsbn,
-                            Quantity = 1
+                            Quantity = int.Parse(Math.Round((myOrder.Total/item.Book.Price),0).ToString())
                         };
                         _context.Add(detail);
                     }
                     await _context.SaveChangesAsync();
+
 
                     //Step 3: empty/delete the cart we just done for thisUser
                     _context.Cart.RemoveRange(myDetailsInCart);
@@ -115,7 +146,7 @@ namespace Assignment1.Controllers
                     Console.WriteLine("Error occurred in Checkout" + ex);
                 }
             }
-            return RedirectToAction("Index", "Cart");
+            return RedirectToAction("Index", "Carts");
         }
         // GET: Books/Details/5
         public async Task<IActionResult> Details(string id)
@@ -177,7 +208,7 @@ namespace Assignment1.Controllers
 
             return View(book);
         }
-
+        [Authorize(Roles = "Seller")]
         // GET: Books/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
@@ -200,6 +231,7 @@ namespace Assignment1.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Seller")]
         public async Task<IActionResult> Edit(string id, [Bind("Isbn,Title,Pages,Author,Category,Price,Desc,ImgUrl")] Book book)
         {
             if (id != book.Isbn)
@@ -237,6 +269,7 @@ namespace Assignment1.Controllers
         }
 
         // GET: Books/Delete/5
+        [Authorize(Roles = "Seller")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null)
@@ -256,6 +289,7 @@ namespace Assignment1.Controllers
         }
 
         // POST: Books/Delete/5
+        [Authorize(Roles = "Seller")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)

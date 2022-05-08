@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Assignment1.Migrations
 {
     [DbContext(typeof(UserContext))]
-    [Migration("20220505073433_AddToCartData")]
-    partial class AddToCartData
+    [Migration("20220507033804_CreateCart")]
+    partial class CreateCart
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

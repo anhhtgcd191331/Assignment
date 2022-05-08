@@ -4,7 +4,7 @@
 
 namespace Assignment1.Migrations
 {
-    public partial class AddToCartData : Migration
+    public partial class CreateCart : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

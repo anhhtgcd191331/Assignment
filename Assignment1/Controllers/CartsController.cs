@@ -8,16 +8,19 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Assignment1.Data;
 using Assignment1.Models;
+using Assignment1.Areas.Identity.Data;
+using Microsoft.AspNetCore.Identity;
 
 namespace Assignment1.Controllers
 {
     public class CartsController : Controller
     {
         private readonly UserContext _context;
-
-        public CartsController(UserContext context)
+        private readonly UserManager<Assignment1User> _userManager;
+        public CartsController(UserContext context, UserManager<Assignment1User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Carts
@@ -26,142 +29,40 @@ namespace Assignment1.Controllers
             var userContext = _context.Cart.Include(c => c.Book).Include(c => c.User);
             return View(await userContext.ToListAsync());
         }
-
-        // GET: Carts/Details/5
-        public async Task<IActionResult> Details(string id)
+        
+        public async Task<IActionResult> UpdateCart(string isbn)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var cart = await _context.Cart
-                .Include(c => c.Book)
-                .Include(c => c.User)
-                .FirstOrDefaultAsync(m => m.UId == id);
-            if (cart == null)
-            {
-                return NotFound();
-            }
-
-            return View(cart);
-        }
-
-        // GET: Carts/Create
-        public IActionResult Create()
-        {
-            ViewData["BookIsbn"] = new SelectList(_context.Book, "Isbn", "Isbn");
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id");
-            return View();
-        }
-
-        // POST: Carts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UId,Quantity,BookIsbn")] Cart cart)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(cart);
+            string thisUserId = _userManager.GetUserId(HttpContext.User);
+            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
+ 
+               fromDb.Quantity++;
+                _context.Update(fromDb);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["BookIsbn"] = new SelectList(_context.Book, "Isbn", "Isbn", cart.BookIsbn);
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", cart.UId);
-            return View(cart);
+            return RedirectToAction("Index");
         }
-
-        // GET: Carts/Edit/5
-        public async Task<IActionResult> Edit(string id)
+            public async Task<IActionResult> removeItem(string isbn)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            string thisUserId = _userManager.GetUserId(HttpContext.User);
+            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
 
-            var cart = await _context.Cart.FindAsync(id);
-            if (cart == null)
-            {
-                return NotFound();
-            }
-            ViewData["BookIsbn"] = new SelectList(_context.Book, "Isbn", "Isbn", cart.BookIsbn);
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", cart.UId);
-            return View(cart);
-        }
-
-        // POST: Carts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("UId,Quantity,BookIsbn")] Cart cart)
-        {
-            if (id != cart.UId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(cart);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CartExists(cart.UId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["BookIsbn"] = new SelectList(_context.Book, "Isbn", "Isbn", cart.BookIsbn);
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", cart.UId);
-            return View(cart);
-        }
-
-        // GET: Carts/Delete/5
-        public async Task<IActionResult> Delete(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var cart = await _context.Cart
-                .Include(c => c.Book)
-                .Include(c => c.User)
-                .FirstOrDefaultAsync(m => m.UId == id);
-            if (cart == null)
-            {
-                return NotFound();
-            }
-
-            return View(cart);
-        }
-
-        // POST: Carts/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
-        {
-            var cart = await _context.Cart.FindAsync(id);
-            _context.Cart.Remove(cart);
+            fromDb.Quantity--;
+            _context.Update(fromDb);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if(fromDb.Quantity == 0)
+            {
+                _context.Remove(fromDb);
+                await _context.SaveChangesAsync();
+                    return RedirectToAction("Index");
+            }
+            return RedirectToAction("Index");
         }
-
-        private bool CartExists(string id)
+        public async Task<IActionResult> Remove(string isbn)
         {
-            return _context.Cart.Any(e => e.UId == id);
-        }
+            string thisUserId = _userManager.GetUserId(HttpContext.User);
+            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
+            _context.Remove(fromDb);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }    
     }
 }

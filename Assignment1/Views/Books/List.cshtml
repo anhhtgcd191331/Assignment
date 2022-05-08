@@ -24,7 +24,7 @@
                       <img src="@Model[i].ImgUrl" class="card-img-top" alt="...">
                       <div class="card-body">
                           <h5 class="card-title">@Model[i].Title</h5>
-                          
+                          <h6>Price: @Model[i].Price$</h6>
                           <a asp-action="Details" class="btn btn-primary" asp-route-id="@Model[i].Isbn">Details</a> |
                           <a asp-action="AddToCart" asp-route-isbn="@Model[i].Isbn" class="btn btn-primary">Add to cart</a>
                       </div>
@@ -32,4 +32,17 @@
               </div>
           }
     </div>
+  </div>
+  <div style="display:flex;text-align:center;justify-content:center">
+      <nav aria-label="Page navigation example">
+          <ul class="pagination">
+              @for (var i = 0; i < @ViewBag.numberOfPages; i++)
+              {
+                  var style = (ViewBag.currentPage == @i) ? "active" : "";
+                  <li class="page-item @style">
+                      <a class="page-link" asp-route-id="@i" asp-route-searchString ="@ViewData["CurrentFilter"]">@(i+1)</a>
+                  </li>
+              }
+          </ul>
+      </nav>
   </div>

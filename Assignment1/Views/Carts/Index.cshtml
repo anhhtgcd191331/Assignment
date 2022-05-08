@@ -1,59 +1,73 @@
 ﻿@model IEnumerable<Assignment1.Models.Cart>
 
 @{
-    ViewData["Title"] = "Index";
+	ViewData["Title"] = "Index";
 }
-<h1>Index</h1>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Book)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Book.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Quantity)
-            </th>
-            <th>
-                Total
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-            double total = 0;
-            int stt = 1;
-            var thanhtien = item.Quantity * item.Book.Price;
-        total = total + thanhtien;
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.UId)
+<h1>Order</h1>
+@if (Model.Count() > 0){
+
+	int stt = 1;
+	double total = 0;
+	<table class="table">
+	<thead>
+		<tr>
+			<th>
+				#
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Book.Title)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Book.Price)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Quantity)
+			</th>
+			<th>
+				Total
+			</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+				double tien = (item.Quantity) * (item.Book.Price);
+				total +=tien;
+				<tr>
+				<td>
+					@(stt++)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Book.Title)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Book.Price)
+				</td>
+				<td>
+					<a asp-action="removeItem" asp-route-isbn="@item.BookIsbn" class="btn btn-primary">-</a> @Html.DisplayFor(modelItem => item.Quantity) <a asp-action="UpdateCart" asp-route-isbn="@item.BookIsbn" class="btn btn-primary">+</a>
+				</td>
+				<td>
+					@((item.Quantity) * (item.Book.Price))	
+				</td>
+				<td>
+                <a asp-action="Remove" asp-route-isbn="@item.BookIsbn" class="btn btn-primary">Remove</a>
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BookIsbn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Book.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Quantity)
-            </td>
-            <td>
-                @(thanhtien.ToString("n0"))
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
-}
-    </tbody>
+		</tr>
+		}
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>Total: @(total)</td>
+		</tr>
+	</tbody>
 </table>
+<a asp-controller="Order" asp-action="Index">History Order</a>
+<a asp-controller="Books" asp-action="Checkout">Checkout</a>
+}else{
+	<p class="alert alert-danger">Cart is null</p>
+}
+<a asp-controller="OrderDetails" asp-action="ListOrders">History Order</a>

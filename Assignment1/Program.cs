@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Assignment1.Data;
 using Assignment1.Areas.Identity.Data;
@@ -16,6 +16,17 @@ builder.Services.AddDefaultIdentity<Assignment1User>(options => options.SignIn.R
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddRazorPages();
+
+// bộ nhớ session
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = "fptbookshop";                  // Đặt tên Session - tên này sử dụng ở Browser (Cookie)
+    options.IdleTimeout = new TimeSpan(0, 60, 0);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
@@ -51,15 +62,14 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 app.UseAuthentication();;
 
 app.UseAuthorization();
-
+app.UseSession();
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Books}/{action=List}/{id?}");
 app.MapRazorPages();
 
 app.Run();

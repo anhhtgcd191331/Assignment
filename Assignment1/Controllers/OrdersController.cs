@@ -37,14 +37,6 @@ namespace Assignment1.Controllers
             var userContext = _context.Order.Include(o => o.User);
             return View(await userContext.ToListAsync());
         }
-        public async Task<IActionResult> Remove(int isbn)
-        {
-            string thisUserId = _userManager.GetUserId(HttpContext.User);
-            Order fromDb = _context.Order.FirstOrDefault(c => c.UId == thisUserId && c.Id == isbn);
 
-            _context.Remove(fromDb);
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Index");
-        }
     }
 }

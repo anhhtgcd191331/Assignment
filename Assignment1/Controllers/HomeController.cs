@@ -3,6 +3,8 @@ using Assignment1.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using MimeKit;
+using MimeKit.Text;
 using System.Diagnostics;
 
 namespace Assignment1.Controllers
@@ -16,21 +18,6 @@ namespace Assignment1.Controllers
             _logger = logger;
             _userManager = userManager;
         }
-
-        [Authorize(Roles = "Customer")]
-        public IActionResult ForCustomerOnly()
-        {
-            ViewBag.message = "This is for Customer only! Hi " + _userManager.GetUserName(HttpContext.User);
-            return View("Views/Home/Index.cshtml");
-        }
-
-        [Authorize(Roles = "Seller")]
-        public IActionResult ForSellerOnly()
-        {
-            ViewBag.message = "This is for Store Owner only!";
-            return View("Views/Home/Index.cshtml");
-        }
-
         public IActionResult Index()
         {
             return View();
@@ -38,6 +25,12 @@ namespace Assignment1.Controllers
 
         public IActionResult Privacy()
         {
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse("from_address@example.com"));
+            email.To.Add(MailboxAddress.Parse("to_address@example.com"));
+            email.Subject = "Test Email Subject";
+            email.Body = new TextPart(TextFormat.Plain) { Text = "Example Plain Text Message Body" };
+
             return View();
         }
 

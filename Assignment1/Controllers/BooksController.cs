@@ -11,6 +11,7 @@ using Assignment1.Models;
 using Assignment1.Areas.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace Assignment1.Controllers
 {
@@ -18,16 +19,22 @@ namespace Assignment1.Controllers
     public class BooksController : Controller
     {
         private readonly UserContext _context;
+        private readonly IEmailSender _emailSender;
         private readonly int _recordsPerPage = 5;
         private readonly int _recordsPerPages = 30;
         private readonly UserManager<Assignment1User> _userManager;
                              
-        public BooksController(UserContext context, UserManager<Assignment1User> userManager)
+        public BooksController(UserContext context, UserManager<Assignment1User> userManager, IEmailSender emailSender)
         {
             _context = context;
             _userManager = userManager;
+            _emailSender = emailSender;
         }
-
+        public async Task<IActionResult> sendEmail()
+        {
+            await _emailSender.SendEmailAsync("hoangtienanhmk@gmail.com", "test send mail", "just test");
+            return RedirectToAction("Index", "Carts");
+        }
         // GET: Books
         //public async Task<IActionResult> Index()
         //{
@@ -39,8 +46,8 @@ namespace Assignment1.Controllers
             {
                 Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
                 Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
-
-                var books1 = from b in _context.Book
+                var userContext = _context.Book.Where(b => b.StoreId == thisStore.Id).Include(b => b.Store);
+                var books1 = from b in userContext
                              select b;
 
                 if (!String.IsNullOrEmpty(searchString))
@@ -57,8 +64,8 @@ namespace Assignment1.Controllers
                     .ToListAsync();
                 return View(books);
             }
-
-            [AllowAnonymous]
+   
+        [AllowAnonymous]
             public async Task<IActionResult> List(int id, string searchString)
             {
 
@@ -84,6 +91,7 @@ namespace Assignment1.Controllers
         public async Task<IActionResult> AddToCart(string isbn)
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
+
             Cart myCart = new Cart() { UId = thisUserId, BookIsbn = isbn, Quantity = 1};
             Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
             //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
@@ -98,6 +106,7 @@ namespace Assignment1.Controllers
                 _context.Add(myCart);
                 await _context.SaveChangesAsync();
             }
+
             return RedirectToAction("List");
         }
         [Authorize(Roles = "Customer")]
@@ -149,28 +158,11 @@ namespace Assignment1.Controllers
                     Console.WriteLine("Error occurred in Checkout" + ex);
                 }
             }
-            return RedirectToAction("Index", "Carts");
+            return RedirectToAction("sendEmail");
         }
         // GET: Books/Details/5
-        public async Task<IActionResult> Details(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var book = await _context.Book
-                .Include(b => b.Store)
-                .FirstOrDefaultAsync(m => m.Isbn == id);
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            return View(book);
-        }
         [AllowAnonymous]
-        public async Task<IActionResult> Detail(string id)
+        public async Task<IActionResult> Details(string id)
         {
             if (id == null)
             {

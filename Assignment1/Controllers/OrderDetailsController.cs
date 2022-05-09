@@ -28,16 +28,33 @@ namespace Assignment1.Controllers
             [Authorize(Roles ="Seller")]
             public async Task<IActionResult> Index(int id)
         {
-            var userContext = _context.OrderDetail.Where(o => o.OrderId == id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User);
+            var userContext = _context.OrderDetail.Where(o => o.OrderId == id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User).Include(o => o.Book.Store);
             return View(await userContext.ToListAsync());
         }
+     
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> ListOrders(int id)
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
-            var userContext = _context.OrderDetail.Where(o=>o.Order.UId==thisUserId && o.OrderId ==id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User);
+            var userContext = _context.OrderDetail.Where(o=>o.Order.UId==thisUserId && o.OrderId ==id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User).Include(o=>o.Book.Store);
             return View(await userContext.ToListAsync());
         }
-       
+        //public async Task<IActionResult> Remove(int id, string isbn)
+        //{
+        //    string thisUserId = _userManager.GetUserId(HttpContext.User);
+        //    OrderDetail fromDb = _context.OrderDetail.FirstOrDefault(c => c.Order.UId == thisUserId && c.BookIsbn == isbn&& c.OrderId == id);
+        //    _context.Remove(fromDb);
+        //    await _context.SaveChangesAsync();
+        //    return RedirectToAction("Index");
+        //}
+        [Authorize(Roles ="Seller")]
+        public async Task<IActionResult> listOrder()
+        {
+            Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
+            Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
+     
+            var userContext = _context.OrderDetail.Where(o => o.Book.StoreId == thisStore.Id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User).Include(o => o.Book.Store);
+            return View(await userContext.ToListAsync());
+        }
     }
 }

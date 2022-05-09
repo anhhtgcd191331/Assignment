@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Assignment1.Data;
 using Assignment1.Areas.Identity.Data;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using week2.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("UserContextConnection");
@@ -26,6 +28,18 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = new TimeSpan(0, 60, 0);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+});
+
+var config = builder.Configuration;
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.Configure<EmailSenderOptions>(options =>
+{
+    options.Host = config["MailSettings:Host"];
+    options.Port = int.Parse(config["MailSettings:Port"]);
+    options.User = config["MailSettings:User"];
+    options.Pass = config["MailSettings:Pass"];
+    options.Name = config["MailSettings:Name"];
+    options.Sender = config["MailSettings:User"];
 });
 
 var app = builder.Build();

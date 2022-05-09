@@ -25,7 +25,7 @@
                       <div class="card-body">
                           <h5 class="card-title">@Model[i].Title</h5>
                           <h6>Price: @Model[i].Price$</h6>
-                          <a asp-action="Details" class="btn btn-primary" asp-route-id="@Model[i].Isbn">Details</a> |
+                          <a asp-action="Detail" class="btn btn-primary" asp-route-id="@Model[i].Isbn">Details</a> |
                           <a asp-action="AddToCart" asp-route-isbn="@Model[i].Isbn" class="btn btn-primary">Add to cart</a>
                       </div>
                   </div>

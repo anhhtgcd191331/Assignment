@@ -24,14 +24,16 @@ namespace Assignment1.Controllers
 
         }
             // GET: OrderDetails
-            public async Task<IActionResult> Index()
+            public async Task<IActionResult> Index(int id)
         {
-            var userContext = _context.OrderDetail.Include(o => o.Book).Include(o => o.Order).Include(o=>o.Order.User);
+            string thisUserId = _userManager.GetUserId(HttpContext.User);
+            var userContext = _context.OrderDetail.Where(o => o.Order.UId == thisUserId && o.OrderId == id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User);
             return View(await userContext.ToListAsync());
         }
-        public async Task<IActionResult> ListOrders()
+        public async Task<IActionResult> ListOrders(int id)
         {
-            var userContext = _context.OrderDetail.Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User);
+            string thisUserId = _userManager.GetUserId(HttpContext.User);
+            var userContext = _context.OrderDetail.Where(o=>o.Order.UId==thisUserId && o.OrderId ==id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User);
             return View(await userContext.ToListAsync());
         }
 
@@ -39,6 +41,7 @@ namespace Assignment1.Controllers
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
             OrderDetail fromDb = _context.OrderDetail.FirstOrDefault(c => c.Order.UId == thisUserId  && c.OrderId== id);
+
             _context.Remove(fromDb);
             await _context.SaveChangesAsync();
             return RedirectToAction("Index"); 

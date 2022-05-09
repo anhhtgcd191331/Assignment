@@ -57,6 +57,7 @@ namespace Assignment1.Controllers
                     .ToListAsync();
                 return View(books);
             }
+
             [AllowAnonymous]
             public async Task<IActionResult> List(int id, string searchString)
             {
@@ -78,6 +79,7 @@ namespace Assignment1.Controllers
                     .ToListAsync();
                 return View(books);
             }
+
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> AddToCart(string isbn)
         {
@@ -116,7 +118,7 @@ namespace Assignment1.Controllers
                     myOrder.UId = thisUserId;
                     myOrder.OrderTime = DateTime.Now;
                     myOrder.Total = myDetailsInCart.Select(c => c.Book.Price * c.Quantity)
-                        .Aggregate((c1, c2) => (c1 + c2)/2);
+                        .Aggregate((c1, c2) => Math.Round((c1 + c2),1));
 
                     _context.Add(myOrder);      
                     await _context.SaveChangesAsync();
@@ -128,7 +130,8 @@ namespace Assignment1.Controllers
                         {
                             OrderId = myOrder.Id,
                             BookIsbn = item.BookIsbn,
-                            Quantity = int.Parse(Math.Round((myOrder.Total/item.Book.Price),0).ToString())
+                            //Quantity = int.Parse(Math.Round((myOrder.Total / item.Book.Price), 0).ToString())
+                            Quantity = item.Quantity
                         };
                         _context.Add(detail);
                     }
@@ -150,6 +153,24 @@ namespace Assignment1.Controllers
         }
         // GET: Books/Details/5
         public async Task<IActionResult> Details(string id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var book = await _context.Book
+                .Include(b => b.Store)
+                .FirstOrDefaultAsync(m => m.Isbn == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            return View(book);
+        }
+        [AllowAnonymous]
+        public async Task<IActionResult> Detail(string id)
         {
             if (id == null)
             {
@@ -313,6 +334,7 @@ namespace Assignment1.Controllers
             }
         }
 
+        [AllowAnonymous]
         private bool BookExists(string id)
         {
             return _context.Book.Any(e => e.Isbn == id);

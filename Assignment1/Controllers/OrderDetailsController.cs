@@ -52,7 +52,7 @@ namespace Assignment1.Controllers
         {
             Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
             Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
-     
+
             var userContext = _context.OrderDetail.Where(o => o.Book.StoreId == thisStore.Id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User).Include(o => o.Book.Store);
             return View(await userContext.ToListAsync());
         }

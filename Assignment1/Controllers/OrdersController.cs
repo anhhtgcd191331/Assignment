@@ -34,7 +34,10 @@ namespace Assignment1.Controllers
         [Authorize(Roles ="Seller")]
         public async Task<IActionResult> Mana()
         {
-            var userContext = _context.Order.Include(o => o.User);
+            Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
+            Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
+            OrderDetail thisOrderDetail = _context.OrderDetail.FirstOrDefault(od => od.Book.StoreId == thisStore.Id);
+            var userContext = _context.Order.Where(o=>o.Id ==thisOrderDetail.OrderId ).Include(o => o.User);
             return View(await userContext.ToListAsync());
         }
         //public async Task<IActionResult> Remove(int id)
@@ -48,10 +51,5 @@ namespace Assignment1.Controllers
         //    await _context.SaveChangesAsync();
         //    return RedirectToAction("Index");
         //}
-        //Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
-        //Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
-        //Book thisBook = _context.Book.FirstOrDefault(b => b.StoreId == thisStore.Id);
-        //var userContext = _context.OrderDetail.Where(o => o.BookIsbn == thisBook.Isbn);
-        //    return View(await userContext.ToListAsync());
     }
 }

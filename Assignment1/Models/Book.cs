@@ -6,6 +6,7 @@ namespace Assignment1.Models
     public class Book
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [StringLength(20)]
         public string Isbn { get; set; }
         public string Title { get; set; }
         public int Pages { get; set; }
@@ -18,8 +19,10 @@ namespace Assignment1.Models
         public int StoreId { get; set; }
 
         public Store? Store { get; set; }
+
+        public virtual ICollection<CartItem>? CartItems { get; set; }
+
         //public virtual ICollection<OrderDetail>? OrderDetails { get; set; }
-        //public virtual ICollection<Cart>? Carts { get; set; }
 
         public Book() { }
     }

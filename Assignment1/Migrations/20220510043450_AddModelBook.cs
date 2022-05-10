@@ -12,7 +12,7 @@ namespace Assignment1.Migrations
                 name: "Book",
                 columns: table => new
                 {
-                    Isbn = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Isbn = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Pages = table.Column<int>(type: "int", nullable: false),
                     Author = table.Column<string>(type: "nvarchar(max)", nullable: false),

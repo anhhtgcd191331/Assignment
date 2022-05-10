@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Assignment1.Migrations
 {
     [DbContext(typeof(UserContext))]
-    [Migration("20220510041720_AddModelBook")]
+    [Migration("20220510043450_AddModelBook")]
     partial class AddModelBook
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -98,7 +98,8 @@ namespace Assignment1.Migrations
             modelBuilder.Entity("Assignment1.Models.Book", b =>
                 {
                     b.Property<string>("Isbn")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Author")
                         .IsRequired()

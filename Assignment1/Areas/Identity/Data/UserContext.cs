@@ -16,15 +16,34 @@ public class UserContext : IdentityDbContext<Assignment1User>
 
     public DbSet<Book> Book { get; set; }
 
+    public DbSet<CartItem> CartItem { get; set; }
+
     //public DbSet<OrderDetail> OrderDetail { get; set; }
     //public DbSet<Order> Order { get; set; }
-    //public DbSet<Cart> Cart { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         // Customize the ASP.NET Identity model and override the defaults if needed.
         // For example, you can rename the ASP.NET Identity table names and more.
-        // Add your customizations after calling base.OnModelCreating(builder);
+        // Add your customizations after calling base.OnModelCreating(builder);            
+
+        builder.Entity<CartItem>(builder =>
+        {
+            builder.HasKey(c => new { c.BookIsbn, c.UserID, });
+
+            builder.HasOne(c => c.User)
+                .WithMany(u => u.CartItems)
+                .HasForeignKey(c => c.UserID);
+
+            builder.HasOne<Book>(od => od.Book)
+                .WithMany(b => b.CartItems)
+                .HasForeignKey(od => od.BookIsbn)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        //By conventions, Index of UserID is created by default. Hence it's not necessary to include the following.
+        //builder.Entity<CartItem>()
+        //    .HasIndex(c => c.UserID);
 
         //builder.Entity<Assignment1User>()
         //    .HasOne<Store>(au => au.Store)
@@ -49,17 +68,6 @@ public class UserContext : IdentityDbContext<Assignment1User>
         //    .HasOne<Book>(od => od.Book)
         //    .WithMany(b => b.OrderDetails)
         //    .HasForeignKey(od => od.BookIsbn);
-
-        //builder.Entity<Cart>()
-        //    .HasKey(c => new { c.UserID, c.BookIsbn });
-        //builder.Entity<Cart>()
-        //    .HasOne<Assignment1User>(c => c.User)
-        //    .WithMany(u => u.Carts)
-        //    .HasForeignKey(c => c.UserID);
-        //builder.Entity<Cart>()
-        //    .HasOne<Book>(od => od.Book)
-        //    .WithMany(b => b.Carts)
-        //    .HasForeignKey(od => od.BookIsbn)
-        //    .OnDelete(DeleteBehavior.NoAction);
+        //    
     }
 }

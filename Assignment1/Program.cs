@@ -10,7 +10,7 @@ var connectionString = builder.Configuration.GetConnectionString("UserContextCon
 builder.Services.AddDbContext<UserContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddDefaultIdentity<Assignment1User>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<Assignment1User>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<UserContext>();
 

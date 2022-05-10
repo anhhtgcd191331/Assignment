@@ -22,7 +22,7 @@ namespace Assignment1.Models
 
         public virtual ICollection<CartItem>? CartItems { get; set; }
 
-        //public virtual ICollection<OrderDetail>? OrderDetails { get; set; }
+        public virtual ICollection<OrderDetail>? OrderDetails { get; set; }
 
         public Book() { }
     }

@@ -18,8 +18,10 @@ public class UserContext : IdentityDbContext<Assignment1User>
 
     public DbSet<CartItem> CartItem { get; set; }
 
-    //public DbSet<OrderDetail> OrderDetail { get; set; }
-    //public DbSet<Order> Order { get; set; }
+    public DbSet<Order> Order { get; set; }
+
+    public DbSet<OrderDetail> OrderDetail { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -41,6 +43,22 @@ public class UserContext : IdentityDbContext<Assignment1User>
                 .OnDelete(DeleteBehavior.NoAction);
         });
 
+        builder.Entity<OrderDetail>(builder =>
+        {
+            builder.HasKey(od => new { od.OrderId, od.BookIsbn });
+
+            builder.HasOne(od => od.Order)
+                .WithMany(or => or.OrderDetails)
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(od => od.Book)
+                .WithMany(b => b.OrderDetails)
+                .HasForeignKey(od => od.BookIsbn)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+
         //By conventions, Index of UserID is created by default. Hence it's not necessary to include the following.
         //builder.Entity<CartItem>()
         //    .HasIndex(c => c.UserID);
@@ -57,17 +75,5 @@ public class UserContext : IdentityDbContext<Assignment1User>
         //    .HasOne<Assignment1User>(o => o.User)
         //    .WithMany(ap => ap.Orders)
         //    .HasForeignKey(o => o.UserId);
-
-        //builder.Entity<OrderDetail>()
-        //    .HasKey(od => new { od.OrderId, od.BookIsbn });
-        //builder.Entity<OrderDetail>()
-        //    .HasOne<Order>(od => od.Order)
-        //    .WithMany(or => or.OrderDetails)
-        //    .HasForeignKey(od => od.OrderId);
-        //builder.Entity<OrderDetail>()
-        //    .HasOne<Book>(od => od.Book)
-        //    .WithMany(b => b.OrderDetails)
-        //    .HasForeignKey(od => od.BookIsbn);
-        //    
     }
 }

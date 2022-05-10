@@ -6,15 +6,20 @@ namespace Assignment1.Models
 {
     public class Order
     {
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key]
         public int Id { get; set; }
 
         public string UserId { get; set; }
         public Assignment1User User { get; set; }
 
         public DateTime OrderTime { get; set; }
+
         public double Total { get; set; }
 
-        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+        public virtual ICollection<OrderDetail>? OrderDetails { get; set; }
+
+        public Order()
+        {
+        }
     }
 }

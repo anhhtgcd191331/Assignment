@@ -18,6 +18,14 @@ namespace Assignment1.Models
 
         public Assignment1User? User { get; set; }
 
-        public virtual ICollection<Book>? Books { get; set; }  // bật tính năng overload khi nào cần thì nó load 
+        public virtual ICollection<Book>? Books { get; set; }  // bật tính năng overload khi nào cần thì nó load
+
+        public Store()
+        {
+            UserId = String.Empty;
+            Name = String.Empty;
+            Address = String.Empty;
+            Slogan = String.Empty;
+        }
     }
 }

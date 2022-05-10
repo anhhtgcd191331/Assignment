@@ -7,37 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Views\Books\**" />
-    <Compile Remove="Views\Carts\**" />
-    <Compile Remove="Views\OrderDetails\**" />
-    <Compile Remove="Views\Orders\**" />
-    <Compile Remove="Views\Stores\**" />
-    <Content Remove="Views\Books\**" />
-    <Content Remove="Views\Carts\**" />
-    <Content Remove="Views\OrderDetails\**" />
-    <Content Remove="Views\Orders\**" />
-    <Content Remove="Views\Stores\**" />
-    <EmbeddedResource Remove="Views\Books\**" />
-    <EmbeddedResource Remove="Views\Carts\**" />
-    <EmbeddedResource Remove="Views\OrderDetails\**" />
-    <EmbeddedResource Remove="Views\Orders\**" />
-    <EmbeddedResource Remove="Views\Stores\**" />
-    <None Remove="Views\Books\**" />
-    <None Remove="Views\Carts\**" />
-    <None Remove="Views\OrderDetails\**" />
-    <None Remove="Views\Orders\**" />
-    <None Remove="Views\Stores\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Controllers\BooksController.cs" />
-    <Compile Remove="Controllers\CartsController.cs" />
-    <Compile Remove="Controllers\OrderDetailsController.cs" />
-    <Compile Remove="Controllers\OrdersController.cs" />
-    <Compile Remove="Controllers\StoresController.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="MailKit" Version="3.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.4" />
@@ -55,6 +24,13 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\Image\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Views\StoreBooks\Index.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

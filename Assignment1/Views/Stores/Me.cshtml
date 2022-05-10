@@ -1,0 +1,33 @@
+﻿@model Assignment1.Models.Store
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+<a asp-action="Index" asp-controller="StoreBooks">Manage the store books</a>
+<div>
+    <h4>Store</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Address)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Address)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Slogan)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Slogan)
+        </dd>
+    </dl>
+</div>
+

@@ -1,33 +1,46 @@
 ﻿#nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using Assignment1.Areas.Identity.Data;
 using Assignment1.Data;
 using Assignment1.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Assignment1.Controllers
 {
     public class StoresController : Controller
     {
         private readonly UserContext _context;
+        private readonly UserManager<Assignment1User> _userManager;
 
-        public StoresController(UserContext context)
+        public StoresController(UserContext context, UserManager<Assignment1User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        // GET: Stores
-        public async Task<IActionResult> Index()
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Index(int id)
         {
-            var userContext = _context.Store.Include(s => s.User);
-            return View(await userContext.ToListAsync());
+            var storeQuery = _context.Store
+                .Include(s => s.User);
+
+            return View(await storeQuery.ToListAsync());
         }
 
-        // GET: Stores/Details/5
+        [Authorize(Roles = "Seller")]
+        public async Task<IActionResult> Me()
+        {
+            var userId = _userManager.GetUserId(User);
+            var store = await _context.Store.FirstOrDefaultAsync(s => s.UserId == userId);
+
+            if (store == null)
+                return RedirectToAction("Create");
+
+            return View(store);
+        }
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -46,44 +59,43 @@ namespace Assignment1.Controllers
             return View(store);
         }
 
-        // GET: Stores/Create
+        [HttpGet]
+        [Authorize(Roles = "Seller")]
         public IActionResult Create()
         {
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
-        // POST: Stores/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize(Roles = "Seller")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Address,Slogan,UId")] Store store)
+        public async Task<IActionResult> Create(Store store)
         {
             if (ModelState.IsValid)
             {
+                store.UserId = _userManager.GetUserId(User);
+
                 _context.Add(store);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                return RedirectToAction(nameof(Me));
             }
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", store.UserId);
+
             return View(store);
         }
 
-        // GET: Stores/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet]
+        [Authorize(Roles = "Seller")]
+        public async Task<IActionResult> Edit()
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var userId = _userManager.GetUserId(User);
+            var store = await _context.Store.FirstOrDefaultAsync(s => s.UserId == userId);
 
-            var store = await _context.Store.FindAsync(id);
             if (store == null)
             {
                 return NotFound();
             }
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", store.UserId);
+
             return View(store);
         }
 
@@ -91,24 +103,30 @@ namespace Assignment1.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize(Roles = "Seller")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,Slogan,UId")] Store store)
+        public async Task<IActionResult> Edit([Bind("Id,Name,Address,Slogan")] Store model)
         {
-            if (id != store.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
+                var userId = _userManager.GetUserId(User);
+                var store = await _context.Store.FirstOrDefaultAsync(s => s.UserId == userId);
+
+                if (store == null || store.Id != model.Id)
+                    return BadRequest();
+
                 try
                 {
+                    store.Name = model.Name;
+                    store.Slogan = model.Slogan;
+                    store.Address = model.Address;
+
                     _context.Update(store);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!StoreExists(store.Id))
+                    if (!await StoreExistsAsync(model.Id))
                     {
                         return NotFound();
                     }
@@ -117,45 +135,15 @@ namespace Assignment1.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", store.UserId);
-            return View(store);
-        }
-
-        // GET: Stores/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
+                return RedirectToAction(nameof(Me));
             }
 
-            var store = await _context.Store
-                .Include(s => s.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (store == null)
-            {
-                return NotFound();
-            }
-
-            return View(store);
+            return View(model);
         }
 
-        // POST: Stores/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        private async Task<bool> StoreExistsAsync(int id)
         {
-            var store = await _context.Store.FindAsync(id);
-            _context.Store.Remove(store);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool StoreExists(int id)
-        {
-            return _context.Store.Any(e => e.Id == id);
+            return await _context.Store.AnyAsync(e => e.Id == id);
         }
     }
 }

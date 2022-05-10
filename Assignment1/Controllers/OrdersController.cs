@@ -28,14 +28,14 @@ namespace Assignment1.Controllers
         public async Task<IActionResult> Index()
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
-            var userContext = _context.Order.Where(o => o.UId == thisUserId).Include(o => o.User);
+            var userContext = _context.Order.Where(o => o.UserId == thisUserId).Include(o => o.User);
             return View(await userContext.ToListAsync());
         }
         [Authorize(Roles ="Seller")]
         public async Task<IActionResult> Mana()
         {
             Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
-            Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
+            Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UserId == thisUser.Id);
             OrderDetail thisOrderDetail = _context.OrderDetail.FirstOrDefault(od => od.Book.StoreId == thisStore.Id);
             var userContext = _context.Order.Where(o=>o.Id ==thisOrderDetail.OrderId ).Include(o => o.User);
             return View(await userContext.ToListAsync());

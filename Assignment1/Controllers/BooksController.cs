@@ -45,7 +45,7 @@ namespace Assignment1.Controllers
             public async Task<IActionResult> Index(int id, string searchString)
             {
                 Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
-                Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
+                Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UserId == thisUser.Id);
                 var userContext = _context.Book.Where(b => b.StoreId == thisStore.Id).Include(b => b.Store);
                 var books1 = from b in userContext
                              select b;
@@ -92,8 +92,8 @@ namespace Assignment1.Controllers
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
 
-            Cart myCart = new Cart() { UId = thisUserId, BookIsbn = isbn, Quantity = 1};
-            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
+            Cart myCart = new Cart() { UserID = thisUserId, BookIsbn = isbn, Quantity = 1};
+            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserID == thisUserId && c.BookIsbn == isbn);
             //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
             if (fromDb != null)
             {
@@ -114,7 +114,7 @@ namespace Assignment1.Controllers
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
             List<Cart> myDetailsInCart = await _context.Cart
-                .Where(c => c.UId == thisUserId)
+                .Where(c => c.UserID == thisUserId)
                 .Include(c => c.Book)
                 .ToListAsync();
             using (var transaction = _context.Database.BeginTransaction())
@@ -124,7 +124,7 @@ namespace Assignment1.Controllers
                     
                     //Step 1: create an order
                     Order myOrder = new Order();
-                    myOrder.UId = thisUserId;
+                    myOrder.UserId = thisUserId;
                     myOrder.OrderTime = DateTime.Now;
                     myOrder.Total = myDetailsInCart.Select(c => c.Book.Price * c.Quantity)
                         .Aggregate((c1, c2) => Math.Round((c1 + c2),1));
@@ -207,7 +207,7 @@ namespace Assignment1.Controllers
                 }
                 book.ImgUrl = "img/" + ImageName;
                 Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
-                Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
+                Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UserId == thisUser.Id);
                 book.StoreId = thisStore.Id;
             }
             else

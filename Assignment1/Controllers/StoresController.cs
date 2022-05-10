@@ -66,7 +66,7 @@ namespace Assignment1.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", store.UId);
+            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", store.UserId);
             return View(store);
         }
 
@@ -83,7 +83,7 @@ namespace Assignment1.Controllers
             {
                 return NotFound();
             }
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", store.UId);
+            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", store.UserId);
             return View(store);
         }
 
@@ -119,7 +119,7 @@ namespace Assignment1.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", store.UId);
+            ViewData["UId"] = new SelectList(_context.Users, "Id", "Id", store.UserId);
             return View(store);
         }
 

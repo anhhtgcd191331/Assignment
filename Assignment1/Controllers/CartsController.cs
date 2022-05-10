@@ -29,7 +29,7 @@ namespace Assignment1.Controllers
         public async Task<IActionResult> Index()
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
-            var userContext = _context.Cart.Where(c=>c.UId==thisUserId).Include(c => c.Book).Include(c => c.User);
+            var userContext = _context.Cart.Where(c=>c.UserID==thisUserId).Include(c => c.Book).Include(c => c.User);
             return View(await userContext.ToListAsync());
         }
         
@@ -37,7 +37,7 @@ namespace Assignment1.Controllers
         public async Task<IActionResult> UpdateCart(string isbn)
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
-            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
+            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserID == thisUserId && c.BookIsbn == isbn);
  
                fromDb.Quantity++;
                 _context.Update(fromDb);
@@ -48,7 +48,7 @@ namespace Assignment1.Controllers
         public async Task<IActionResult> removeItem(string isbn)
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
-            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
+            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserID == thisUserId && c.BookIsbn == isbn);
 
             fromDb.Quantity--;        
             while(fromDb.Quantity != 0)
@@ -64,7 +64,7 @@ namespace Assignment1.Controllers
         public async Task<IActionResult> Remove(string isbn)
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
-            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UId == thisUserId && c.BookIsbn == isbn);
+            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserID == thisUserId && c.BookIsbn == isbn);
             _context.Remove(fromDb);
             await _context.SaveChangesAsync();
             return RedirectToAction("Index");

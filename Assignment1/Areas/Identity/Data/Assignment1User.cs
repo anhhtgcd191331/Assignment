@@ -12,9 +12,11 @@ public class Assignment1User : IdentityUser
 {
     public DateTime? DoB { get; set; }
     public string? Address { get; set; }
+
     public Store? Store { get; set; }
-    public virtual ICollection<Order>? Orders { get; set; }
-    public virtual ICollection<Cart>? Carts { get; set; }
+
+    //public virtual ICollection<Order>? Orders { get; set; }
+    //public virtual ICollection<Cart>? Carts { get; set; }
 
 }
 

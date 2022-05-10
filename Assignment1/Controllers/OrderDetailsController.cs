@@ -36,7 +36,7 @@ namespace Assignment1.Controllers
         public async Task<IActionResult> ListOrders(int id)
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
-            var userContext = _context.OrderDetail.Where(o=>o.Order.UId==thisUserId && o.OrderId ==id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User).Include(o=>o.Book.Store);
+            var userContext = _context.OrderDetail.Where(o=>o.Order.UserId==thisUserId && o.OrderId ==id).Include(o => o.Book).Include(o => o.Order).Include(o => o.Order.User).Include(o=>o.Book.Store);
             return View(await userContext.ToListAsync());
         }
         //public async Task<IActionResult> Remove(int id, string isbn)

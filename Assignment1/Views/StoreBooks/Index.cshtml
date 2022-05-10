@@ -1,0 +1,83 @@
+﻿@model ICollection<Assignment1.Models.Book>
+
+@{
+    ViewData["Title"] = "Manage Store Books";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<form asp-action="Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            Find by name: <input type="text" name="SearchString" value="@ViewData["CurrentFilter"]" />
+            <input type="submit" value="Search" class="btn btn-default" /> |
+            <a asp-action="List" asp-controller="Books">Back to Full List</a>
+        </p>
+    </div>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Title
+            </th>
+            <th>
+                Pages
+            </th>
+            <th>
+                Author)
+            </th>
+            <th>
+                Category)
+            </th>
+            <th>
+                Price)
+            </th>
+            <th>
+                Desc)
+            </th>
+            <th>
+                ImgUrl)
+            </th>
+            <th>
+                Actions
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Title)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Pages)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Author)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Category)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Price)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Desc)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ImgUrl)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Isbn">Edit</a> |
+                    <a asp-action="Details" asp-controller="Books" asp-route-id="@item.Isbn">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Isbn">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

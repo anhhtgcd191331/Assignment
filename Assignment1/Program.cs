@@ -15,9 +15,13 @@ builder.Services.AddDefaultIdentity<Assignment1User>(options => options.SignIn.R
     .AddEntityFrameworkStores<UserContext>();
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+var mvcBuilder = builder.Services.AddControllersWithViews();
 
-builder.Services.AddRazorPages();
+if (builder.Environment.IsDevelopment())
+{
+    mvcBuilder.AddRazorRuntimeCompilation();
+    builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+}
 
 // bộ nhớ session
 builder.Services.AddDistributedMemoryCache();

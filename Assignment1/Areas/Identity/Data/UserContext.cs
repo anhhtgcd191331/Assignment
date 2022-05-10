@@ -14,7 +14,7 @@ public class UserContext : IdentityDbContext<Assignment1User>
     }
     public DbSet<Store> Store { get; set; }
 
-    //public DbSet<Book> Book { get; set; }
+    public DbSet<Book> Book { get; set; }
 
     //public DbSet<OrderDetail> OrderDetail { get; set; }
     //public DbSet<Order> Order { get; set; }

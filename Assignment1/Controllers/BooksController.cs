@@ -23,7 +23,7 @@ namespace Assignment1.Controllers
         private readonly int _recordsPerPage = 5;
         private readonly int _recordsPerPages = 30;
         private readonly UserManager<Assignment1User> _userManager;
-                             
+
         public BooksController(UserContext context, UserManager<Assignment1User> userManager, IEmailSender emailSender)
         {
             _context = context;
@@ -35,65 +35,70 @@ namespace Assignment1.Controllers
             await _emailSender.SendEmailAsync("hoangtienanhmk@gmail.com", "test send mail", "just test");
             return RedirectToAction("Index", "Carts");
         }
+
         // GET: Books
         //public async Task<IActionResult> Index()
         //{
         //    var userContext = _context.Book.Include(b => b.Store);
         //    return View(await userContext.ToListAsync());
         //}
+
         [Authorize(Roles = "Seller")]
-            public async Task<IActionResult> Index(int id, string searchString)
-            {
-                Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
-                Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UserId == thisUser.Id);
-                var userContext = _context.Book.Where(b => b.StoreId == thisStore.Id).Include(b => b.Store);
-                var books1 = from b in userContext
-                             select b;
+        public async Task<IActionResult> Index(int id, string searchString)
+        {
+            Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
 
-                if (!String.IsNullOrEmpty(searchString))
-                {
-                    books1 = books1.Where(s => s.Title!.Contains(searchString));
-                }
-                int numberOfRecords = await books1.CountAsync();     //Count SQL
-                int numberOfPages = (int)Math.Ceiling((double)numberOfRecords / _recordsPerPage);
-                ViewBag.numberOfPages = numberOfPages;
-                ViewBag.currentPage = id;
-                List<Book> books = await books1
-                    .Skip(id * _recordsPerPage)  //Offset SQL
-                    .Take(_recordsPerPage)       //Top SQL
-                    .ToListAsync();
-                return View(books);
+            var thisStore = await _context.Store
+                .FirstOrDefaultAsync(s => s.UserId == thisUser.Id);
+
+            var userContext = _context.Book.Where(b => b.StoreId == thisStore.Id).Include(b => b.Store);
+            var books1 = from b in userContext
+                         select b;
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                books1 = books1.Where(s => s.Title!.Contains(searchString));
             }
-   
+            int numberOfRecords = await books1.CountAsync();     //Count SQL
+            int numberOfPages = (int)Math.Ceiling((double)numberOfRecords / _recordsPerPage);
+            ViewBag.numberOfPages = numberOfPages;
+            ViewBag.currentPage = id;
+            List<Book> books = await books1
+                .Skip(id * _recordsPerPage)  //Offset SQL
+                .Take(_recordsPerPage)       //Top SQL
+                .ToListAsync();
+            return View(books);
+        }
+
         [AllowAnonymous]
-            public async Task<IActionResult> List(int id, string searchString)
+        public async Task<IActionResult> List(int id, string searchString)
+        {
+
+            var books1 = from b in _context.Book
+                         select b;
+
+            if (!String.IsNullOrEmpty(searchString))
             {
-
-                var books1 = from b in _context.Book
-                             select b;
-
-                if (!String.IsNullOrEmpty(searchString))
-                {
-                    books1 = books1.Where(s => s.Title!.Contains(searchString)|| s.Category.Contains(searchString));
-                }
-                int numberOfRecords = await books1.CountAsync();     //Count SQL
-                int numberOfPages = (int)Math.Ceiling((double)numberOfRecords / _recordsPerPages);
-                ViewBag.numberOfPages = numberOfPages;
-                ViewBag.currentPage = id;
-                List<Book> books = await books1
-                    .Skip(id * _recordsPerPages)  //Offset SQL
-                    .Take(_recordsPerPages)       //Top SQL
-                    .ToListAsync();
-                return View(books);
+                books1 = books1.Where(s => s.Title!.Contains(searchString) || s.Category.Contains(searchString));
             }
+            int numberOfRecords = await books1.CountAsync();     //Count SQL
+            int numberOfPages = (int)Math.Ceiling((double)numberOfRecords / _recordsPerPages);
+            ViewBag.numberOfPages = numberOfPages;
+            ViewBag.currentPage = id;
+            List<Book> books = await books1
+                .Skip(id * _recordsPerPages)  //Offset SQL
+                .Take(_recordsPerPages)       //Top SQL
+                .ToListAsync();
+            return View(books);
+        }
 
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> AddToCart(string isbn)
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
 
-            Cart myCart = new Cart() { UserID = thisUserId, BookIsbn = isbn, Quantity = 1};
-            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserID == thisUserId && c.BookIsbn == isbn);
+            var myCart = new CartItem() { UserID = thisUserId, BookIsbn = isbn, Quantity = 1 };
+            var fromDb = _context.CartItem.FirstOrDefault(c => c.UserID == thisUserId && c.BookIsbn == isbn);
             //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
             if (fromDb != null)
             {
@@ -113,7 +118,7 @@ namespace Assignment1.Controllers
         public async Task<IActionResult> Checkout()
         {
             string thisUserId = _userManager.GetUserId(HttpContext.User);
-            List<Cart> myDetailsInCart = await _context.Cart
+            List<CartItem> myDetailsInCart = await _context.CartItem
                 .Where(c => c.UserID == thisUserId)
                 .Include(c => c.Book)
                 .ToListAsync();
@@ -121,15 +126,15 @@ namespace Assignment1.Controllers
             {
                 try
                 {
-                    
+
                     //Step 1: create an order
                     Order myOrder = new Order();
                     myOrder.UserId = thisUserId;
                     myOrder.OrderTime = DateTime.Now;
                     myOrder.Total = myDetailsInCart.Select(c => c.Book.Price * c.Quantity)
-                        .Aggregate((c1, c2) => Math.Round((c1 + c2),1));
+                        .Aggregate((c1, c2) => Math.Round((c1 + c2), 1));
 
-                    _context.Add(myOrder);      
+                    _context.Add(myOrder);
                     await _context.SaveChangesAsync();
 
                     //Step 2: insert all order details by var "myDetailsInCart"
@@ -148,7 +153,7 @@ namespace Assignment1.Controllers
 
 
                     //Step 3: empty/delete the cart we just done for thisUser
-                    _context.Cart.RemoveRange(myDetailsInCart);
+                    _context.CartItem.RemoveRange(myDetailsInCart);
                     await _context.SaveChangesAsync();
                     transaction.Commit();
                 }
@@ -213,11 +218,11 @@ namespace Assignment1.Controllers
             else
             {
                 return View(book);
-            }                
-                    _context.Add(book);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));                
-                ViewData["StoreId"] = new SelectList(_context.Store, "Id", "Id", book.StoreId);
+            }
+            _context.Add(book);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+            ViewData["StoreId"] = new SelectList(_context.Store, "Id", "Id", book.StoreId);
 
             return View(book);
         }
@@ -259,13 +264,13 @@ namespace Assignment1.Controllers
                 {
                     return NotFound();
                 }
-                bookToUpdate.Title = book.Title ; 
-                bookToUpdate.Pages = book.Pages ;
-                bookToUpdate.Category = book.Category ;
-                bookToUpdate.Author = book.Author ;
+                bookToUpdate.Title = book.Title;
                 bookToUpdate.Pages = book.Pages;
-                bookToUpdate.Price = book.Price ;
-                bookToUpdate.Desc = book.Desc ;
+                bookToUpdate.Category = book.Category;
+                bookToUpdate.Author = book.Author;
+                bookToUpdate.Pages = book.Pages;
+                bookToUpdate.Price = book.Price;
+                bookToUpdate.Desc = book.Desc;
                 try
                 {
                     _context.Update(bookToUpdate);
@@ -308,7 +313,7 @@ namespace Assignment1.Controllers
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var book = await _context.Book.FindAsync(id);
-            if(book == null)
+            if (book == null)
             {
                 return RedirectToAction(nameof(Index));
             }

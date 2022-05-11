@@ -37,7 +37,7 @@ namespace Assignment1.Controllers
             Assignment1User thisUser = await _userManager.GetUserAsync(HttpContext.User);
             Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUser.Id);
             OrderDetail thisOrderDetail = _context.OrderDetail.FirstOrDefault(od => od.Book.StoreId == thisStore.Id);
-            var userContext = _context.Order.Where(o=>o.Id ==thisOrderDetail.OrderId ).Include(o => o.User);
+            var userContext = _context.Order/*.Where(o=>o.Id==thisOrderDetail.OrderId)*/.Include(o => o.User);
             return View(await userContext.ToListAsync());
         }
         //public async Task<IActionResult> Remove(int id)

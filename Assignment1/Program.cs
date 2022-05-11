@@ -20,15 +20,6 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
 // bộ nhớ session
-builder.Services.AddDistributedMemoryCache();
-
-builder.Services.AddSession(options =>
-{
-    options.Cookie.Name = "fptbookshop";                  // Đặt tên Session - tên này sử dụng ở Browser (Cookie)
-    options.IdleTimeout = new TimeSpan(0, 60, 0);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
 
 var config = builder.Configuration;
 builder.Services.AddTransient<IEmailSender, EmailSender>();
@@ -80,7 +71,6 @@ app.UseRouting();
 app.UseAuthentication();;
 
 app.UseAuthorization();
-app.UseSession();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Books}/{action=List}/{id?}");

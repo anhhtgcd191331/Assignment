@@ -4,7 +4,7 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Information of Book</h1>8
+<h1>Information of Book</h1>
 <div class="card" style="width: 18rem;">
     <img src="@Model.ImgUrl" class="card-img-top" alt="...">
 </div>
@@ -52,6 +52,12 @@
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Store.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Isbn)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Isbn)
         </dd>
     </dl>
 </div>

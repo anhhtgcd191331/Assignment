@@ -30,9 +30,10 @@ namespace Assignment1.Controllers
             _userManager = userManager;
             _emailSender = emailSender;
         }
+        [Authorize(Roles ="Customer")]
         public async Task<IActionResult> sendEmail()
         {
-            await _emailSender.SendEmailAsync("hoangtienanhmk@gmail.com", "test send mail", "just test");
+            await _emailSender.SendEmailAsync("hoangtienanhmk@gmail.com", "Check out successfully", "Your order is confirmed. Thanks you!!!");
             return RedirectToAction("Index", "Carts");
         }
         // GET: Books

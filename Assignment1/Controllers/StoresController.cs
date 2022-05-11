@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Assignment1.Data;
 using Assignment1.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Assignment1.Controllers
 {
+    [Authorize(Roles ="Seller")]
     public class StoresController : Controller
     {
         private readonly UserContext _context;
